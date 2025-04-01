@@ -1,0 +1,371 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script type="text/javascript" src="https://rawgit.com/mfranzke/datalist-polyfill/47f4f410f4994370ebcfb0cc010bf8a8c2043ae3/datalist-polyfill.min.js"></script>
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+const STR_ARR_JOIN = '/%!/';
+/**
+ * Display only the clicked tab.
+ * @param {Event} event  The click event that called this function
+ * @param {string} tabName The name of the tab that should be displayed
+ */
+function selectTab(event, tabName)
+{
+  // Hide all tab pages.
+  const tabcontent = document.getElementsByClassName("tabcontent");
+  for(let i = 0; i < tabcontent.length; ++i)
+    tabcontent[i].style.display = "none";
+
+  // Deactivate the tab selectors.
+  const tablinks = document.getElementsByClassName("tablinks");
+  for(let i = 0; i < tablinks.length; ++i)
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+
+  // Display the desired tab content and update its selector's display.
+  document.getElementById(tabName).style.display = "block";
+  event.currentTarget.className += " active";
+
+  // Autofocus the tab's list input element if there is no data in it.
+  const target = document.getElementById(tabName.slice(0, -4) + "Picker");
+  if (target && !target.value)
+    target.focus();
+}
+
+
+
+/**
+ * If a serious fetch error occurs, hide the data tables.
+ * @param {Error} err An unhandled exception in the server-side code.
+ */
+function hideAllTables(err)
+{
+  if (err)
+  {
+    // TODO: show this message in the client? Or fall back to a different query?
+    const tables = document.getElementsByClassName("table");
+    for(let i = 0; i < tables.length; ++i)
+      tables[i].style.display = "none";
+  }
+}
+
+var patientWrapper, locationWrapper;
+function showPatientTable(input)
+{
+  // Ensure the desired table is displayed immediately (i.e. loading GIF).
+  document.getElementById('patient').style.display = "block";
+
+  const td = makeTableData(input);
+  // Sort by item frequency, then by slot type.
+  td.sort([{column: 4, desc: true}, {column: 1}]);
+  patientWrapper = new google.visualization.ChartWrapper({
+    containerId: 'patient',
+    chartType: 'Table',
+    dataTable: td,
+  });
+
+  patientWrapper.draw();
+}
+function showLocationTable(input)
+{
+  // Ensure the desired table is displayed immediately (i.e. loading GIF).
+  document.getElementById('location').style.display = "block";
+
+  const td = makeTableData(input);
+  // Sort by the slot type, then the item frequency.
+  td.sort([{column: 0}, {column: 4, desc: true}]);
+  locationWrapper = new google.visualization.ChartWrapper({
+    containerId: 'location',
+    chartType: 'Table',
+    dataTable: td,
+  });
+
+  locationWrapper.draw();
+}
+
+
+
+/**
+ * Respond to user input (via typing or option selection) of either input control.
+ * Checks if the given value is a valid option for which data will exist, and if
+ * so, fires an async call to construct the table.
+ *
+ * @param {Event} event        The Event which activated this handler
+ */
+function getTableData(event)
+{
+  let isChoice = false;
+  const value = event.target.value;
+  switch(event.type)
+  {
+    case "deleteContentBackward":
+    case "deleteContentForward":
+    case "insertText":
+    case "input":
+      isChoice = isValidChoice(value, event.target.list);
+      break;
+    default:
+      console.log(event.type);
+  }
+  if (isChoice)
+  {
+    if (event.target.name === 'patient')
+    {
+      google.script.run.withSuccessHandler(showPatientTable)
+                       .withFailureHandler(hideAllTables)
+                       .fetchData(value);
+      google.script.run.itemTracker({type: 'patient', value: value});
+    }
+    else if (event.target.name === 'location')
+    {
+      google.script.run.withSuccessHandler(showLocationTable)
+                       .withFailureHandler(hideAllTables)
+                       .fetchData(value);
+      google.script.run.itemTracker({type: 'location', value: value});
+    }
+    else
+      console.log('Matched valid choice but unable to handle target name.');
+
+    // Defocus the picker after choosing a valid option.
+    event.target.blur();
+  }
+}
+
+
+
+/**
+ * Convert the input JSON object into the Google Visualization DataTable class
+ * @param {Object.<string, Object.<string, any>>} json A JSON formatted object with keys [locations, rarities] or [Common, ... Hat]
+ * @return {google.visualization.DataTable} A DataTable object suitable for loading into a TableChart visualization.
+ */
+function makeTableData(json)
+{
+  // If passed the loot json, it has two keys: rarities and locations.
+  // If passed the location json, it has up to 4 keys, each of which is a rarity.
+  let keys = new Set(Object.keys(json));
+  // IE cannot construct from iterable, so add one-by-one.
+  if(!keys || keys.size == 0)
+  {
+    keys = new Set();
+    for(let k in Object.keys(json))
+      keys.add(Object.keys(json)[k]);
+  }
+  const isPatientTable = keys.has("data");
+  // Since we are making a table, loot's rarity and locations objects offer
+  // the same data, just with a different default sort. Ignore the rarity object (for now).
+  const data = isPatientTable ? json.data : json;
+  const result = new google.visualization.DataTable();
+  if(isPatientTable)
+  {
+    result.addColumn('string', 'Nome');
+    result.addColumn('string', 'Data da avaliação');
+  }
+  else
+  {
+    result.addColumn('string', 'Quality');
+    result.addColumn('string', 'Item');
+  }
+  // TODO: Specifying a pattern:'string' doesn't actually work (e.g. to add a % after the % values).
+  //result.addColumn({type: 'number', label: 'Amount', pattern: '#,##0'});
+  //result.addColumn({type: 'number', label: 'Times Seen', pattern: '#,##0'});
+  //result.addColumn({type: 'number', label: 'Chance (%)'});
+  //result.addColumn({type: 'number', label: 'Uncertainty (%)'});
+
+  // i = Location or Quality.
+  //const rarityLabels = {"Common": "1. Common", "Valuable": "2. Valuable","Exceptional": "3. Exceptional", "Hat": "4. Hat"};
+  for(let i in data)
+    // j = Quality or Item.
+    for(let j in data[i])
+    {
+      let item = data[i][j];
+      // Attempt to coerce a numerical sort to the rarity categories.
+      result.addRow([rarityLabels[i] ? {v: rarityLabels[i], f: i} : i,
+                     rarityLabels[j] ? {v: rarityLabels[j], f: j} : j,
+                     item.quant * 1,
+                     item.seen * 1,
+                     item.percent * 1,
+                     item.error * 1]);
+    }
+
+  return result;
+}
+
+
+// Use Google Charts to build a TableChart with the data, to offload the sorting task.
+google.charts.load('current', {packages:['table']});
+google.charts.setOnLoadCallback(function ()
+  {
+    // Request updated labels from Apps Script.
+    getLatestLabels();
+
+    // Attempt to populate immediately, based on session storage.
+    ['lootList', 'locationList'].forEach(function (id) {
+      let lastValues = window.sessionStorage.getItem(id);
+      if (lastValues)
+      {
+        document.getElementById(id).innerHTML = array2DataList(lastValues.split(STR_ARR_JOIN));
+      }
+    });
+
+    // Open the "Welcome" tab by default.
+    document.getElementById("onOpen").click();
+  }
+);
+
+// Attach event handlers to the locationPicker and lootPicker input controls.
+// "input" fires for selection events and the user typing. The input controls
+// have type = search, so that the user can easily clear their text filter to
+// access the full range of options.
+['patientpicker', 'locationPicker'].forEach(function (id) {
+  let element = document.getElementById(id);
+  element.addEventListener('input', getTableData, true);
+  // When the input control is selected, highlight all text to simplify clearing its value.
+  element.addEventListener('focus', doSelectText, true);
+});
+
+
+/**
+ * Query the Apps Script page host for the most up-to-date location.
+ */
+ function getLatestLabels()
+{
+  // Async loading of location and loot lists (from cache, or from HornTracker).
+  const loadTask = google.script.run
+      .withSuccessHandler(dataLoadedOK)
+      .withFailureHandler(dataNotLoadedOK);
+  loadTask.getLocationsList();
+  loadTask.getLootList();
+
+  if (this._labelQuery)
+    clearTimeout(this._labelQuery);
+  this._labelQuery = undefined;
+}
+
+
+/**
+ * Error handler, in case loading picker options fails.
+ * @param {Error} err An unhandled exception in the server-side code.
+ */
+function dataNotLoadedOK(err)
+{
+  // TODO: Load from spreadsheet instead of just saying "bye"
+  let text = "<p>An error occurred while fetching available filter options.<br>Please reload the page to try again.</p>";
+  text += "<p>Note (Dec 2018):<br>If HornTracker is currently unavailable, this tool will not function properly. In the future, obtaining data from other sources may be implemented.";
+  text += "<br>Thanks for your interest in this tool!</p>"
+  document.getElementById("Welcome").innerHTML = text;
+  document.getElementById("onOpen").click();
+}
+
+/**
+ * Provide dynamically filled options to the loot and location pickers by populating the relevant datalist.
+ * @param {CacheList} input         An object containing both the DOM id and a string[] of options.
+ */
+function dataLoadedOK(input)
+{
+  // The received loot or locations should be ordered alphabetically.
+  input.data.sort();
+
+  // Store this most recent data in case the page is reloaded.
+  window.sessionStorage.setItem(input.id, input.data.join(STR_ARR_JOIN));
+
+  document.getElementById(input.id).innerHTML = array2DataList(input.data);
+  // Remove the loading text once the options have loaded.
+  let element = document.getElementById(input.id + 'Loading');
+  if (element)
+  {
+    try { document.getElementById(input.id + 'Loading').remove(); }
+    catch(e)
+    {
+      // Remove is not supported in IE or Opera Mini, so clear its HTML instead.
+      document.getElementById(input.id + 'Loading').innerHTML = '';
+    }
+  }
+
+  // Schedule the options to be refreshed again in 60 minutes.
+  if (!this._labelQuery)
+    this._labelQuery = setTimeout(getLatestLabels, 60 * 60 * 1000);
+}
+
+
+
+// Compares a value with a datalist's nodes to determine if it matches one exactly.
+/**
+ * @param {string} value The current text in an input control
+ * @param {HTMLDataListElement} datalist Valid choices for the associated input control
+ * @returns {boolean} whether the current text is an exact valid choice for this input control.
+ */
+function isValidChoice(value, datalist)
+{
+  const setKey = '__' + datalist.id;
+  let set = this[setKey];
+  if (set instanceof Set)
+    return set.has(value);
+
+  try
+  {
+    set = new Set();
+    Array.prototype.forEach.call(datalist.childNodes, function (node) {
+      set.add(node.value);
+    });
+  }
+  catch(e)
+  {
+    console.log('Fallback set construction');
+    set = new Set();
+    let nodes = datalist.childNodes;
+    // Internet Explorer has no support for nodeList.forEach, so go through old-school.
+    for(let i = 0; i < nodes.length; ++i)
+      set.add(nodes.item(i).value);
+  }
+  // Store this set for repeated calls, but remove it after 5 minutes.
+  this[setKey] = set;
+  setTimeout(function () { this[setKey] = undefined; }, 5 * 60 * 1000);
+  return set.has(value);
+}
+
+
+
+/**
+ * Convert string[] into an HTML datalist.
+ *
+ * @param {string[]} options The array of items to be made into options.
+ * @returns {string} An HTML string suitable to become InnerHTML (e.g. the datalist).
+ */
+function array2DataList(options)
+{
+  return options.reduce(function (dl, option) {
+    return dl += '<option value="' + option + '"/>';
+  }, '');
+}
+
+
+
+/**
+ * Select all the text inside the event target (to make filtering a bit nicer).
+ * @param {Event} event A focus event
+ */
+function doSelectText(event)
+{
+  event.target.select();
+}
+
+/**
+ * After the page is resized, the charts should be redrawn. Avoid redrawing during
+ * the operation by setting a redraw delay.
+ */
+$(window).resize(function ()
+  {
+    if(this.resizeTO)
+      clearTimeout(this.resizeTO);
+    this.resizeTO = setTimeout(
+      function(){ $(this).trigger('resizeEnd');},
+      500);
+  }
+);
+// The resize handler, called at the end of the resize operation.
+$(window).on('resizeEnd', function ()
+  {
+     if (lootWrapper) lootWrapper.draw();
+     if (locationWrapper) locationWrapper.draw();
+  }
+);
+
+</script>
