@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<base target="_top">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.js"></script>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+<script src="js/jquery.signature.js"></script>
+<script type="text/javascript" src="js/jquery.signature.js"></script>
+<script>
+function genHexString(len) {
+    const hex = '0123456789ABCDEF';
+    let output = '';
+    for (let i = 0; i < len; ++i) {
+        output += hex.charAt(Math.floor(Math.random() * hex.length));
+    }
+    return output;
+}
+
+function BtnGerar(){
+  document.getElementById("idgerado").innerHTML = genHexString(6);
+}
+
+function BtnAnvpo(){
+  document.getElementById("BtnAnvpo").disabled = true;
+  document.getElementById("BtnBnvpo").disabled = true;
+  document.getElementById("BtnCnvpo").disabled = true;
+  checkfinal();          
+}
+
+function checkfinal(){
+  var countdisabled=0;
+  if(document.getElementById("BtnAnvpo").disabled){countdisabled++;}
+  if(document.getElementById("BtnArecall").disabled){countdisabled++;}    
+  if(document.getElementById("BtnApain").disabled){countdisabled++;}
+  if(document.getElementById("BtnAhypothermia").disabled){countdisabled++;}
+  if(countdisabled>3){document.getElementById("BtnFinalizar").disabled = false;}
+}
+
+function BtnBnvpo(){document.getElementById("v2nvpo").value=document.getElementById("v2nvpo").value * 2;}
+function BtnCnvpo(){document.getElementById("v3nvpo").value=document.getElementById("v3nvpo").value * 2;}
+
+function BtnArecall(){
+  document.getElementById("BtnArecall").disabled = true;
+  document.getElementById("BtnBrecall").disabled = true;
+  document.getElementById("BtnCrecall").disabled = true;  
+  checkfinal();
+}
+function BtnBrecall(){document.getElementById("v2recall").value=document.getElementById("v2recall").value * 2;}
+function BtnCrecall(){document.getElementById("v3recall").value=document.getElementById("v3recall").value * 2;}
+
+function BtnApain(){
+  document.getElementById("BtnApain").disabled = true;
+  document.getElementById("BtnBpain").disabled = true;
+  document.getElementById("BtnCpain").disabled = true;  
+  checkfinal();
+}
+function BtnBpain(){document.getElementById("v2pain").value=document.getElementById("v2pain").value * 2;}
+function BtnCpain(){document.getElementById("v3pain").value=document.getElementById("v3pain").value * 2;}
+
+function BtnAhypothermia(){
+  document.getElementById("BtnAhypothermia").disabled = true;
+  document.getElementById("BtnBhypothermia").disabled = true;
+  document.getElementById("BtnChypothermia").disabled = true;  
+  checkfinal();
+}
+function BtnBhypothermia(){document.getElementById("v2hypothermia").value=document.getElementById("v2hypothermia").value * 2;}
+function BtnChypothermia(){document.getElementById("v3hypothermia").value=document.getElementById("v3hypothermia").value * 2;}
+
+
+function TelaFinalizar(){
+selectTab(event, 'finalizar');
+}
+
+function BtnFinalizar(){
+  var id=document.getElementById("id").value;
+  var quemcoletou=document.getElementById("senha").value; 
+  var	idade=document.getElementById("idade").value;	
+  var sexo=document.getElementById("sexo").value;	
+  var contas=document.getElementById("operadora").value;	
+  var ponv50=document.getElementById("v2nvpo").value;	
+  var ponv0=document.getElementById("v3nvpo").value;	
+  var recall50=document.getElementById("v2recall").value;	
+  var recall0=document.getElementById("v3recall").value;	
+  var pain50=document.getElementById("v2pain").value;	
+  var pain0=document.getElementById("v3pain").value;	
+  var hypothermia50=document.getElementById("v2hypothermia").value;	
+  var hypothermia0=document.getElementById("v3hypothermia").value;
+  var hanestesia=document.getElementById("hanestesia").checked;
+  var hnvpo=document.getElementById("hnvpo").checked;
+  var hdor=document.getElementById("hdor").checked;
+  var hhipotermia=document.getElementById("hhipotermia").checked;
+  var hconsciencia=document.getElementById("hconsciencia").checked;  
+  
+  google.script.run.withSuccessHandler(endprocedures).inserirdados(id,quemcoletou, idade, sexo, contas, ponv50, ponv0, recall50, recall0, pain50, pain0, hypothermia50, hypothermia0,hanestesia,hnvpo,hdor,hhipotermia,hconsciencia);
+  //google.script.run.withSuccessHandler(endprocedures).inserirdados(id,quemcoletou, idade, sexo, contas, ponv50, ponv0, recall50, recall0, pain50, pain0, hypothermia50, hypothermia0);
+  endprocedures();
+}
+
+function endprocedures(){
+Reset();
+}
+
+function updateSystemLog2(id, quemcoletou, idade, sexo, contas, ponv50, ponv0, recall50, recall0, pain50, pain0, hypothermia50, hypothermia0, hanestesia, hnvpo, hdor, hhipotermia, hconsciencia) {
+    var logText = id+","+quemcoletou+","+idade+","+sexo+","+contas+","+ponv50+","+ponv0+","+recall50+","+recall0+","+pain50+","+pain0+","+hypothermia50+","+hypothermia0+","+hanestesia+","+hnvpo+","+hdor+","+hhipotermia+","+hconsciencia;
+	
+    document.getElementById("systemLog").innerText = logText;
+}
+
+
+function updateSystemLog(id, quemcoletou, idade, sexo, contas, ponv50, ponv0, recall50, recall0, pain50, pain0, hypothermia50, hypothermia0, hanestesia, hnvpo, hdor, hhipotermia, hconsciencia) {
+    var logText = "Enviando dados: " +
+                  "\nID: " + id +
+                  "\nQuem Coletou: " + quemcoletou +
+                  "\nIdade: " + idade +
+                  "\nSexo: " + sexo +
+                  "\nContas: " + contas +
+                  "\nPONV50: " + ponv50 +
+                  "\nPONV0: " + ponv0 +
+                  "\nRecall50: " + recall50 +
+                  "\nRecall0: " + recall0 +
+                  "\nPain50: " + pain50 +
+                  "\nPain0: " + pain0 +
+                  "\nHypothermia50: " + hypothermia50 +
+                  "\nHypothermia0: " + hypothermia0 +
+                  "\nAnestesia Anterior: " + hanestesia +
+                  "\nNáuseas/Vômitos Pós-Op: " + hnvpo +
+                  "\nDor Pós-Op: " + hdor +
+                  "\nHipotermia Pós-Op: " + hhipotermia +
+                  "\nConsciência Intraoperatória: " + hconsciencia;
+
+    document.getElementById("systemLog").innerText = logText;
+}
+
+
+
+
+function Resetnvpo(){
+document.getElementById("v2nvpo").value=1;
+document.getElementById("v3nvpo").value=1;
+document.getElementById("BtnAnvpo").disabled = false;
+document.getElementById("BtnBnvpo").disabled = false;
+document.getElementById("BtnCnvpo").disabled = false;  
+}
+
+function Resetpain(){
+document.getElementById("v2pain").value=1;
+document.getElementById("v3pain").value=1;
+document.getElementById("BtnApain").disabled = false;
+document.getElementById("BtnBpain").disabled = false;
+document.getElementById("BtnCpain").disabled = false;  
+}
+
+function Resetrecall(){
+document.getElementById("v2recall").value=1;
+document.getElementById("v3recall").value=1;
+document.getElementById("BtnArecall").disabled = false;
+document.getElementById("BtnBrecall").disabled = false;
+document.getElementById("BtnCrecall").disabled = false;  
+}
+
+function Resethypothermia(){
+document.getElementById("v2hypothermia").value=1;
+document.getElementById("v3hypothermia").value=1;
+document.getElementById("BtnAhypothermia").disabled = false;
+document.getElementById("BtnBhypothermia").disabled = false;
+document.getElementById("BtnChypothermia").disabled = false;  
+}
+
+
+function Reset(){
+document.getElementById("v2recall").value=1;
+document.getElementById("v3recall").value=1;
+document.getElementById("v2nvpo").value=1;
+document.getElementById("v3nvpo").value=1;
+document.getElementById("v2pain").value=1;
+document.getElementById("v3pain").value=1;
+document.getElementById("v2hypothermia").value=1;
+document.getElementById("v3hypothermia").value=1;
+
+document.getElementById("BtnAhypothermia").disabled = false;
+document.getElementById("BtnBhypothermia").disabled = false;
+document.getElementById("BtnChypothermia").disabled = false;  
+document.getElementById("BtnArecall").disabled = false;
+document.getElementById("BtnBrecall").disabled = false;
+document.getElementById("BtnCrecall").disabled = false;  
+document.getElementById("BtnApain").disabled = false;
+document.getElementById("BtnBpain").disabled = false;
+document.getElementById("BtnCpain").disabled = false;  
+document.getElementById("BtnAnvpo").disabled = false;
+document.getElementById("BtnBnvpo").disabled = false;
+document.getElementById("BtnCnvpo").disabled = false;
+document.getElementById("BtnFinalizar").disabled = true;    
+}
+
+
+function abrirurl(x){
+openInNewTab(x);
+}
+
+
+</script>  
+
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font: 16px Arial;  
+}
+
+/*the container must be positioned relative:*/
+.autocomplete {
+  position: absolute;
+  display: inline-block;
+}
+
+input {
+  border: 1px solid transparent;
+  background-color: #f1f1f1;
+  padding: 10px;
+  font-size: 16px;
+}
+
+input[type=text] {
+  background-color: #f1f1f1;
+  width: 100%;
+}
+
+input[type=submit] {
+  background-color: DodgerBlue;
+  color: #fff;
+  cursor: pointer;
+}
+
+.autocomplete-items {
+  position: absolute;
+  border: 1px solid #d4d4d4;
+  border-bottom: none;
+  border-top: none;
+  z-index: 99;
+  /*position the autocomplete items to be the same width as the container:*/
+  top: 100%;
+  left: 0;
+  right: 0;
+}
+
+.autocomplete-items div {
+  padding: 10px;
+  cursor: pointer;
+  background-color: #fff; 
+  border-bottom: 1px solid #d4d4d4; 
+}
+
+/*when hovering an item:*/
+.autocomplete-items div:hover {
+  background-color: #e9e9e9; 
+}
+
+/*when navigating through the items using the arrow keys:*/
+.autocomplete-active {
+  background-color: DodgerBlue !important; 
+  color: #ffffff; 
+}
+</style>
+</head>     
+<body>
+<div id="page" class="page">
+
+  <h3>Pesquisa PIBIC: valor das medidas para prevenção de complicações após anestesias</h3>
+  <div id="tabs" class="tab">
+    <button class="tablinks" onclick="selectTab(event, 'gerador')" id="onOpen">Gerador de código para TCLE</button>
+    <button class="tablinks" onclick="selectTab(event, 'basal')" id="onOpen">Pré-teste</button>
+    <button class="tablinks" onclick="selectTab(event, 'nvpo')" id="onOpen">Náuseas e vômitos</button>
+    <button class="tablinks" onclick="selectTab(event, 'recall')">Consciência intraoperatória</button>    
+    <button class="tablinks" onclick="selectTab(event, 'dor')">Dor pós-operatória</button>
+    <button class="tablinks" onclick="selectTab(event, 'hipotermia')">Hipotermia</button>
+    <button class="tablinks" onclick="selectTab(event, 'finalizar')">Finalizar</button>
+  </div>
+ 
+ <div id="content" class="container">
+
+<div id="gerador" class="tabcontent">  
+  <button id="BtnGerar" onclick="BtnGerar()">Gerar</button><br>
+  <p id="idgerado">ID:</p>
+
+  </div>
+
+<div id="basal" class="tabcontent">
+  Senha: <input type="password" id="senha"><br>
+  <button id="BtnAtivar" onclick="BtnAtivar()">Ativar</button><br>
+  ID do voluntário: <input type="text" id="id"><br>
+Idade <input type="number" id="idade" value=30><br>
+Sexo Biológico <select type="number" id="sexo">
+  <option value="Masculino">Masculino</option>
+  <option value="Feminino">Feminino</option>
+  </select>
+  <br>
+<label for="operadora">Como normalmente são acertadas suas contas hospitalares?</label>
+  <select name="operadora" id="operadora">
+    <option value="sus">SUS</option>
+    <option value="plano">Plano de saúde</option>
+    <option value="particular">Particular</option>
+  </select><br>
+        <div>
+            <input type="checkbox" id="hanestesia" name="hanestesia">
+            <label for="hanestesia">Já recebeu anestesia antes</label>
+        </div>
+        <div>
+            <input type="checkbox" id="hnvpo" name="hnvpo">
+            <label for="hnvpo">Já apresentou náuseas ou vômitos pós-operatórios</label>
+        </div>
+        <div>
+            <input type="checkbox" id="hdor" name="hdor">
+            <label for="hdor">Já apresentou dor pós-operatória</label>
+        </div>
+        <div>
+            <input type="checkbox" id="hhipotermia" name="hhipotermia">
+            <label for="hhipotermia">Já apresentou hipotermia pós-operatória</label>
+        </div>
+        <div>
+            <input type="checkbox" id="hconsciencia" name="hconsciencia">
+            <label for="hconsciencia">Já vivenciou consciência intraoperatória</label>
+        </div>
+
+  </div>
+
+    <div id="nvpo" class="tabcontent">
+      Imagine-se acordando de uma cirurgia para tratamento de câncer, um tanto debilitado. Em alguns minutos após despertar, sente fortes náuseas e vontade de vomitar. Você teme, e com razão, que caso vomite, corra algum risco a mais, como pontos soltando, dor no local da cirurgia, sangramento e até mesmo que se engasgue com algo.<br> Você pode escolher entre três opções, mas você precisa pagar do seu próprio bolso um valor em R$ para cada escolha, qual seria sua escolha se:<br><br>
+
+<br><table style="margin-left: auto; margin-right: auto;"><tr><th><button id="BtnResetar" onclick="Resetnvpo()">Apenas resetar</button></th></tr></table><br>
+
+
+<br>
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Symptoms-vomiting.jpg/185px-Symptoms-vomiting.jpg">
+<br>
+
+<table id="tnvpo", style="margin-left: auto; margin-right: auto;">
+<tr>
+<th>R$<input type="number" id="v1nvpo" value="0" disabled></th>
+<th>R$<input type="number" id="v2nvpo" value="1" disabled></th>
+<th>R$<input type="number" id="v3nvpo" value="1" disabled></th>
+  </tr>
+  <tr>
+<th>Risco 100%.<br><br></th>
+<th>Risco  50%.<br><br></th>
+<th>Risco zero.<br><br></th>
+  </tr>
+
+<tr>
+<th><span style='font-size:50px;'>&#128555;</span></th>
+<th><span style='font-size:50px;'>&#128528;</span></th>
+<th><span style='font-size:50px;'>&#128516;</span></th>
+</tr>
+
+<tr>
+<th><button id="BtnAnvpo" onclick="BtnAnvpo()">Opção A</button></th>
+<th><button id="BtnBnvpo" onclick="BtnBnvpo()">Opção B</button></th>
+<th><button id="BtnCnvpo" onclick="BtnCnvpo()">Opção C</button></th>
+  </tr>
+  </table>
+    </div>
+
+ 
+<div id="recall" class="tabcontent">
+
+      
+
+      Imagine-se acordando de uma cirurgia para tratamento de câncer, um tanto debilitado, mas com a cirurgia ainda acontecendo, você ouvindo tudo, sentindo puxões e até mesmo dor.<br> Você pode escolher entre três opções, mas você precisa pagar do seu próprio bolso um valor em R$ para cada escolha, qual seria sua escolha se:<br><br>
+<br><table style="margin-left: auto; margin-right: auto;"><tr><th><button id="BtnResetar" onclick="Resetrecall()">Apenas resetar</button></th></tr></table><br>
+<br>
+<img src="https://gabriel.med.br/imagens/aawake.gif">
+<br>
+
+<table id="tnvpo", style="margin-left: auto; margin-right: auto;">
+<tr>
+<th>R$<input type="number" id="v1recall" value="0" disabled></th>
+<th>R$<input type="number" id="v2recall" value="1" disabled></th>
+<th>R$<input type="number" id="v3recall" value="1" disabled></th>
+  </tr>
+  <tr>
+<th>Risco 100%.<br><br></th>
+<th>Risco  50%.<br><br></th>
+<th>Risco zero.<br><br></th>
+  </tr>
+
+<tr>
+<th><span style='font-size:50px;'>&#128555;</span></th>
+<th><span style='font-size:50px;'>&#128528;</span></th>
+<th><span style='font-size:50px;'>&#128516;</span></th>
+</tr>
+
+<tr>
+<th><button id="BtnArecall" onclick="BtnArecall()">Opção A</button></th>
+<th><button id="BtnBrecall" onclick="BtnBrecall()">Opção B</button></th>
+<th><button id="BtnCrecall" onclick="BtnCrecall()">Opção C</button></th>
+  </tr>
+  </table>
+    </div>
+
+  <div id="finalizar" class="tabcontent">
+    Ao clicar no botão, o caso será gravado e os dados serão resetados. O botão só ficará ativo se todos os testes forem finalizados.<br><br>
+
+    <table id="tfinalizar", style="margin-left: auto; margin-right: auto;">
+      <tr>
+        <th><button id="BtnFinalizar" onclick="BtnFinalizar()" disabled>Finalizar</button></th>
+      </tr>
+      <tr>
+        <th><button id="BtnResetar" onclick="Reset()">Apenas resetar</button></th>
+      </tr>
+    </table>
+
+<BR>
+<div id="systemLog" style="background-color: lightgray; margin-top: 20px; padding: 10px;">
+    <strong>System Log:</strong>
+</div>
+
+
+  </div>
+
+
+    <div id="dor" class="tabcontent">
+      Imagine-se acordando de uma cirurgia para tratamento de câncer, um tanto debilitado. Em alguns minutos após despertar, sente fortes dores. Você teme, e com razão, que devido a essas dores, tenha algum risco a mais, como de não conseguir respirar direito, sentir falta de ar e até mesmo ter risco de infarto. Você pode escolher entre três opções:
+      <br><table style="margin-left: auto; margin-right: auto;"><tr><th><button id="BtnResetar" onclick="Resetpain()">Apenas resetar</button></th></tr></table><br>
+<br>
+<img src="https://gabriel.med.br/imagens/popain.jpg">
+<br>
+
+<table id="tnvpo", style="margin-left: auto; margin-right: auto;">
+<tr>
+<th>R$<input type="number" id="v1pain" value="0" disabled></th>
+<th>R$<input type="number" id="v2pain" value="1" disabled></th>
+<th>R$<input type="number" id="v3pain" value="1" disabled></th>
+  </tr>
+  <tr>
+<th>Risco 100%.<br><br></th>
+<th>Risco  50%.<br><br></th>
+<th>Risco zero.<br><br></th>
+  </tr>
+
+<tr>
+<th><span style='font-size:50px;'>&#128555;</span></th>
+<th><span style='font-size:50px;'>&#128528;</span></th>
+<th><span style='font-size:50px;'>&#128516;</span></th>
+</tr>
+
+<tr>
+<th><button id="BtnApain" onclick="BtnApain()">Opção A</button></th>
+<th><button id="BtnBpain" onclick="BtnBpain()">Opção B</button></th>
+<th><button id="BtnCpain" onclick="BtnCpain()">Opção C</button></th>
+  </tr>
+  </table>
+    </div>
+
+    <div id="hipotermia" class="tabcontent">
+      Imagine-se acordando de uma cirurgia para tratamento de câncer, um tanto debilitado. Em alguns minutos após despertar, sente frio muito forte, daqueles que nem você aguenta, de doer os ossos. Você teme, e com razão, que o frio cause outros problemas, como sangramento, dificuldade de respirar, até mesmo pode aumentar o risco de um infarto.<br> Você pode escolher entre três opções:<BR>
+      <br><table style="margin-left: auto; margin-right: auto;"><tr><th><button id="BtnResetar" onclick="Resethypothermia()">Apenas resetar</button></th></tr></table><br>
+      <br>
+<img src="https://gabriel.med.br/imagens/hypothermia.jpg">
+<br>
+
+<table id="tnvpo", style="margin-left: auto; margin-right: auto;">
+  <tr>
+    <th>R$<input type="number" id="v1hypothermia" value="0" disabled></th>
+    <th>R$<input type="number" id="v2hypothermia" value="1" disabled></th>
+    <th>R$<input type="number" id="v3hypothermia" value="1" disabled></th>
+  </tr>
+  <tr>
+    <th>Risco 100%.<br><br></th>
+    <th>Risco  50%.<br><br></th>
+    <th>Risco zero.<br><br></th>
+  </tr>
+  <tr>
+    <th><span style='font-size:50px;'>&#128555;</span></th>
+    <th><span style='font-size:50px;'>&#128528;</span></th>
+    <th><span style='font-size:50px;'>&#128516;</span></th>
+  </tr>
+
+  <tr>
+    <th><button id="BtnAhypothermia" onclick="BtnAhypothermia()">Opção A</button></th>
+    <th><button id="BtnBhypothermia" onclick="BtnBhypothermia()">Opção B</button></th>
+    <th><button id="BtnChypothermia" onclick="BtnChypothermia()">Opção C</button></th>
+  </tr>
+</table>
+</div>
+
+<?!= HtmlService.createHtmlOutputFromFile('style').getContent(); ?>
+<?!= HtmlService.createHtmlOutputFromFile('tabcontrol').getContent(); ?>
+
+</body>
+</html>
+
+
+
